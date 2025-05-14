@@ -269,6 +269,17 @@ mod tests {
     }
 
     #[test]
+    fn dont_match_double_slashes_segments_for_single_slash_path() {
+        let path = "/";
+        let def = (StaticSegment("/"), StaticSegment("/"));
+        let matched = def.test(path).expect("couldn't match route");
+        assert_eq!(matched.matched(), "/");
+        assert_eq!(matched.remaining(), "/");
+        let params = matched.params();
+        assert!(params.is_empty());
+    }
+
+    #[test]
     fn arbitrary_nesting_of_tuples_has_no_effect_on_matching() {
         let path = "/foo/bar";
         let def = (

@@ -27,6 +27,7 @@ macro_rules! tuples {
                     let mut nth_field = 0;
                     let mut matched_len = 0;
                     let mut r = path;
+                    let mut just_slash = false;
 
                     let mut p = Vec::new();
                     let mut m = String::new();
@@ -48,10 +49,15 @@ macro_rules! tuples {
                     }
 
                     matched_len += m.len();
+                    if m.len() == 1 && m.starts_with("/") {
+                        just_slash = true;
+                    }
+
                     $(
                         if $ty.optional() {
                             nth_field += 1;
                         }
+                        #[allow(unused_assignments)]
                         if !$ty.optional() || nth_field <= include_optionals {
                             let PartialPathMatch {
                                 remaining,
@@ -70,7 +76,15 @@ macro_rules! tuples {
                                 Some(v) => v,
                             };
                             r = remaining;
-                            matched_len += matched.len();
+                            matched_len += if matched.len() == 1 && matched.starts_with("/") && just_slash {
+                                0
+                            }
+                            else {
+                                // just_slash will never be read for the last field in tuple
+                                just_slash = matched.len() == 1 && matched.starts_with("/");
+
+                                matched.len()
+                            };
                             p.extend(params);
                         }
                     )*
